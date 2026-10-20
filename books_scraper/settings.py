@@ -85,3 +85,8 @@ DOWNLOAD_DELAY = 1
 
 # Set settings whose default value is deprecated to a future-proof value
 FEED_EXPORT_ENCODING = "utf-8"
+
+
+# Logging configuration
+LOG_LEVEL = "INFO"
+LOG_FORMAT = "%(asctime)s [%(name)s] %(levelname)s: %(message)s"
