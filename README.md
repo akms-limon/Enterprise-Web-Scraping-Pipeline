@@ -80,10 +80,6 @@ The category spider disables the main book pipeline and configured feeds to prev
 
 ## Docker Setup Guide
 
-Prerequisites
-
-Install Docker Engine and ensure the Docker daemon is running.
-
 Build the image
 
 Run from the repository root:
@@ -111,43 +107,13 @@ Check the service
 ```
 curl http://localhost:6800/daemonstatus.json
 ```
-
 A successful response contains `"status": "ok"`.
-
-Check container status and logs
-
-```
-docker ps --filter "name=books-scrapyd"
-docker logs books-scrapyd
-```
-
-Stop and remove the container
-
-```
-docker stop books-scrapyd
-docker rm books-scrapyd
-```
 
 The host's mounted `output/` directory remains available after container removal.
 
 ## Scrapyd Deployment Guide
 
-Scrapyd provides an HTTP API for deploying and scheduling Scrapy spiders.
-
-The local deployment target is configured in `scrapy.cfg`:
-
-```
-[settings]
-default = books_scraper.settings
-
-[deploy:local]
-url = http://localhost:6800/
-project = books_scraper
-```
-
-Start Scrapyd
-
-Ensure the Docker container is running and Scrapyd is accessible at `http://localhost:6800/`.
+Ensure the Docker container is running.
 
 Deploy the project
 
