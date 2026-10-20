@@ -1,7 +1,7 @@
 [project]
 name = "enterprise-web-scraping-pipeline"
 version = "0.1.0"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "scrapy>=2.19.0",
 ]

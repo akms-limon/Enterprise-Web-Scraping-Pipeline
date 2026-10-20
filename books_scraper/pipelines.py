@@ -14,7 +14,8 @@ class BooksScraperPipeline:
         return pipeline
 
     def open_spider(self):
-        database_path = Path("books.db")
+        database_path = Path("output/books.db")
+        database_path.parent.mkdir(parents=True, exist_ok=True)
         self.connection = sqlite3.connect(database_path)
 
         self.connection.execute(

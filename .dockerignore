@@ -1,0 +1,14 @@
+venv/
+.venv/
+.git/
+__pycache__/
+*.py[cod]
+.scrapy/
+*.db
+books.json
+books.csv
+books.xml
+logs/
+eggs/
+build/
+dist/
