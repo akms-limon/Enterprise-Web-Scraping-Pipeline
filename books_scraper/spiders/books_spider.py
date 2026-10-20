@@ -1,7 +1,9 @@
+
 import random
 
 import scrapy
 
+from books_scraper.category_utils import extract_categories
 from books_scraper.items import BooksScraperItem
 
 
@@ -13,30 +15,16 @@ class BooksSpider(scrapy.Spider):
 
     def parse(self, response):
         """Discover categories and select between five and ten."""
-
-        category_links = response.css(".side_categories ul ul li a")
-        categories = []
-
-        for link in category_links:
-            category_name = link.css("::text").get()
-            category_href = link.attrib.get("href")
-
-            if not category_name or not category_href:
-                self.logger.warning("Skipping an incomplete category link.")
-                continue
-
-            categories.append(
-                {
-                    "name": category_name.strip(),
-                    "url": response.urljoin(category_href),
-                }
-            )
+        categories = extract_categories(response, self.logger)
 
         if not categories:
             self.logger.error("No categories found on %s", response.url)
             return
 
-        category_count = random.randint(5, min(10, len(categories)))
+        category_count = random.randint(
+            min(5, len(categories)),
+            min(10, len(categories)),
+        )
         selected_categories = random.sample(categories, category_count)
 
         self.logger.info(
@@ -58,8 +46,7 @@ class BooksSpider(scrapy.Spider):
             )
 
     def parse_category(self, response, category_name, collected_books):
-        """Collect books from every page, then select up to five."""
-
+        """Collect every page, then select up to five books."""
         for book in response.css("article.product_pod"):
             title = book.css("h3 a::attr(title)").get()
             price = book.css(".price_color::text").get()
@@ -69,31 +56,27 @@ class BooksSpider(scrapy.Spider):
             product_url = book.css("h3 a::attr(href)").get()
             image_url = book.css(".image_container img::attr(src)").get()
 
-            if not all(
-                (
-                    title,
-                    price,
-                    availability,
-                    product_url,
-                    image_url,
-                )
-            ):
+            if not all((
+                title,
+                price,
+                availability,
+                product_url,
+                image_url,
+            )):
                 self.logger.warning(
                     "Skipping incomplete book on %s",
                     response.url,
                 )
                 continue
 
-            collected_books.append(
-                {
-                    "title": title.strip(),
-                    "price": price.strip(),
-                    "availability": availability,
-                    "product_url": response.urljoin(product_url),
-                    "image_url": response.urljoin(image_url),
-                    "category": category_name,
-                }
-            )
+            collected_books.append({
+                "title": title.strip(),
+                "price": price.strip(),
+                "availability": availability,
+                "product_url": response.urljoin(product_url),
+                "image_url": response.urljoin(image_url),
+                "category": category_name,
+            })
 
         next_page = response.css("li.next a::attr(href)").get()
 

@@ -1,18 +1,21 @@
+"""Spider for discovering book categories."""
+
 import scrapy
 
+from books_scraper.category_utils import extract_categories
+
+
 class CategoriesSpider(scrapy.Spider):
-    """Discover book category links from the Books to Scrape homepage."""
+    """Discover category names and URLs from the website."""
 
     name = "categories"
-
     start_urls = ["https://books.toscrape.com/"]
 
     def parse(self, response):
-        """Extract category names and absolute URLs from the sidebar."""
+        """Yield each discovered category."""
+        categories = extract_categories(response, self.logger)
 
-        category_links = response.css(".side_categories ul ul li a")
-
-        if not category_links:
+        if not categories:
             self.logger.warning(
                 "No category links found on %s",
                 response.url,
@@ -21,29 +24,12 @@ class CategoriesSpider(scrapy.Spider):
 
         self.logger.info(
             "Found %d category links on %s",
-            len(category_links),
+            len(categories),
             response.url,
         )
 
-        for link in category_links:
-            category_name = link.css("::text").get()
-
-            if not category_name:
-                self.logger.warning(
-                    "Skipping a category link with no text on %s",
-                    response.url,
-                )
-                continue
-
-            category_name = category_name.strip()
-            category_url = response.urljoin(link.attrib["href"])
-
-            self.logger.debug(
-                "Discovered category: %s",
-                category_name,
-            )
-
+        for category in categories:
             yield {
-                "category": category_name,
-                "category_url": category_url,
+                "category": category["name"],
+                "category_url": category["url"],
             }

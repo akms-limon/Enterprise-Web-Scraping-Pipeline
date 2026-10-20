@@ -332,7 +332,7 @@ Generated output files may be excluded from version control by `.gitignore`.
 
 ## Verification
 
-The main spider has been executed locally and through Scrapyd. In a verified Scrapyd run, JSON, CSV, XML, and SQLite each contained 40 records. Required fields were present, prices were numeric, availability values were boolean in JSON, product URLs were unique, and the normalized records matched across all four outputs.
+The main spider has been executed locally and through Scrapyd. Record counts can vary because category and book selection is random. In a verified Scrapyd run, JSON, CSV, XML, and SQLite each contained 36 records, and all four record counts matched. A separate local run produced 39 records. Required fields were present in the local JSON output, and the output counts matched across JSON, CSV, XML, and SQLite.
 
 To repeat the checks, run the spider and compare the generated output files and SQLite records.
 

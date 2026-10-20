@@ -5,19 +5,13 @@ from pathlib import Path
 
 from itemadapter import ItemAdapter
 from scrapy.exceptions import DropItem
+from books_scraper.items import BooksScraperItem
 
 
 class BooksScraperPipeline:
     """Validate, normalize, and store scraped books in SQLite."""
 
-    required_fields = (
-        "title",
-        "price",
-        "availability",
-        "product_url",
-        "image_url",
-        "category",
-    )
+    required_fields = tuple(BooksScraperItem.fields)
 
     @classmethod
     def from_crawler(cls, crawler):
