@@ -90,3 +90,28 @@ FEED_EXPORT_ENCODING = "utf-8"
 # Logging configuration
 LOG_LEVEL = "INFO"
 LOG_FORMAT = "%(asctime)s [%(name)s] %(levelname)s: %(message)s"
+
+
+ITEM_PIPELINES = {
+    "books_scraper.pipelines.BooksScraperPipeline": 300,
+}
+
+
+
+FEEDS = {
+    "books.json": {
+        "format": "json",
+        "encoding": "utf8",
+        "overwrite": True,
+    },
+    "books.csv": {
+        "format": "csv",
+        "encoding": "utf8",
+        "overwrite": True,
+    },
+    "books.xml": {
+        "format": "xml",
+        "encoding": "utf8",
+        "overwrite": True,
+    },
+}
