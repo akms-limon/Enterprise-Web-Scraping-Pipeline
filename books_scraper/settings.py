@@ -16,21 +16,3 @@ LOG_FORMAT = "%(asctime)s [%(name)s] %(levelname)s: %(message)s"
 ITEM_PIPELINES = {
     "books_scraper.pipelines.BooksScraperPipeline": 300,
 }
-
-FEEDS = {
-    "output/books.json": {
-        "format": "json",
-        "encoding": "utf8",
-        "overwrite": True,
-    },
-    "output/books.csv": {
-        "format": "csv",
-        "encoding": "utf8",
-        "overwrite": True,
-    },
-    "output/books.xml": {
-        "format": "xml",
-        "encoding": "utf8",
-        "overwrite": True,
-    },
-}

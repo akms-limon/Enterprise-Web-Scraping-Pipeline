@@ -10,6 +10,25 @@ from books_scraper.items import BooksScraperItem
 class BooksSpider(scrapy.Spider):
     """Discover categories and scrape randomly selected books."""
 
+    custom_settings = {
+        "FEEDS": {
+            "output/books.json": {
+                "format": "json",
+                "encoding": "utf8",
+                "overwrite": True,
+            },
+            "output/books.csv": {
+                "format": "csv",
+                "encoding": "utf8",
+                "overwrite": True,
+            },
+            "output/books.xml": {
+                "format": "xml",
+                "encoding": "utf8",
+                "overwrite": True,
+            },
+        },
+    }
     name = "books"
     start_urls = ["https://books.toscrape.com/index.html"]
 

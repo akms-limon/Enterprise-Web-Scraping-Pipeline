@@ -11,6 +11,11 @@ class CategoriesSpider(scrapy.Spider):
     name = "categories"
     start_urls = ["https://books.toscrape.com/"]
 
+    custom_settings = {
+        "ITEM_PIPELINES": {},
+        "FEEDS": {},
+    }
+
     def parse(self, response):
         """Yield each discovered category."""
         categories = extract_categories(response, self.logger)
