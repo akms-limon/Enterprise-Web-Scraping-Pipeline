@@ -1,23 +1,37 @@
-
+import math
 import re
 import sqlite3
 from pathlib import Path
 
 from itemadapter import ItemAdapter
+from scrapy.exceptions import DropItem
 
 
 class BooksScraperPipeline:
+    """Validate, normalize, and store scraped books in SQLite."""
+
+    required_fields = (
+        "title",
+        "price",
+        "availability",
+        "product_url",
+        "image_url",
+        "category",
+    )
+
     @classmethod
     def from_crawler(cls, crawler):
+        """Create the pipeline with access to the active crawler."""
         pipeline = cls()
         pipeline.crawler = crawler
         return pipeline
 
     def open_spider(self):
+        """Open the database and prepare the books table."""
         database_path = Path("output/books.db")
         database_path.parent.mkdir(parents=True, exist_ok=True)
-        self.connection = sqlite3.connect(database_path)
 
+        self.connection = sqlite3.connect(database_path)
         self.connection.execute(
             """
             CREATE TABLE IF NOT EXISTS books (
@@ -31,39 +45,43 @@ class BooksScraperPipeline:
             )
             """
         )
-        self.connection.commit()
-
         self.connection.execute("DELETE FROM books")
         self.connection.commit()
 
         self.crawler.spider.logger.info(
-            "SQLite database is ready: %s",
-            database_path,
+            "SQLite database ready: %s", database_path
         )
 
     def process_item(self, item):
+        """Validate, normalize, and save one book."""
         adapter = ItemAdapter(item)
 
-        for field_name in ("title", "product_url", "image_url", "category"):
-            value = adapter.get(field_name)
+        for field in self.required_fields:
+            value = adapter.get(field)
+            if value is None or not str(value).strip():
+                raise DropItem(f"Missing required field: {field}")
 
-            if isinstance(value, str):
-                adapter[field_name] = " ".join(value.split())
+        for field in ("title", "product_url", "image_url", "category"):
+            adapter[field] = " ".join(str(adapter[field]).split())
 
-        price = adapter.get("price")
+        raw_price = str(adapter["price"]).strip()
+        normalized_price = re.sub(r"[^\d.]", "", raw_price)
 
-        if price is not None:
-            normalized_price = re.sub(r"[^\d.]", "", str(price))
+        if not normalized_price or normalized_price.count(".") > 1:
+            raise DropItem(f"Invalid price: {raw_price}")
 
-            if not normalized_price:
-                raise ValueError("Invalid book price")
+        try:
+            price = float(normalized_price)
+        except ValueError as error:
+            raise DropItem(f"Invalid price: {raw_price}") from error
 
-            adapter["price"] = float(normalized_price)
+        if not math.isfinite(price) or price < 0:
+            raise DropItem(f"Invalid price: {raw_price}")
 
-        availability = adapter.get("availability", "")
-        adapter["availability"] = (
-            str(availability).strip().startswith("In stock")
-        )
+        adapter["price"] = price
+
+        availability = " ".join(str(adapter["availability"]).split())
+        adapter["availability"] = availability.startswith("In stock")
 
         self.connection.execute(
             """
@@ -81,10 +99,14 @@ class BooksScraperPipeline:
                 adapter["category"],
             ),
         )
-        self.connection.commit()
 
         return item
 
     def close_spider(self):
-        self.connection.close()
-        self.crawler.spider.logger.info("SQLite database connection closed.")
+        """Commit pending records and close the database connection."""
+        if hasattr(self, "connection"):
+            self.connection.commit()
+            self.connection.close()
+            self.crawler.spider.logger.info(
+                "SQLite database connection closed."
+            )
