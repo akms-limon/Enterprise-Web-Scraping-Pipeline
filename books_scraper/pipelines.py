@@ -7,7 +7,13 @@ from itemadapter import ItemAdapter
 
 
 class BooksScraperPipeline:
-    def open_spider(self, spider):
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipeline = cls()
+        pipeline.crawler = crawler
+        return pipeline
+
+    def open_spider(self):
         database_path = Path("books.db")
         self.connection = sqlite3.connect(database_path)
 
@@ -29,9 +35,12 @@ class BooksScraperPipeline:
         self.connection.execute("DELETE FROM books")
         self.connection.commit()
 
-        spider.logger.info("SQLite database is ready: %s", database_path)
+        self.crawler.spider.logger.info(
+            "SQLite database is ready: %s",
+            database_path,
+        )
 
-    def process_item(self, item, spider):
+    def process_item(self, item):
         adapter = ItemAdapter(item)
 
         for field_name in ("title", "product_url", "image_url", "category"):
@@ -58,12 +67,7 @@ class BooksScraperPipeline:
         self.connection.execute(
             """
             INSERT INTO books (
-                title,
-                price,
-                availability,
-                product_url,
-                image_url,
-                category
+                title, price, availability, product_url, image_url, category
             )
             VALUES (?, ?, ?, ?, ?, ?)
             """,
@@ -80,6 +84,6 @@ class BooksScraperPipeline:
 
         return item
 
-    def close_spider(self, spider):
+    def close_spider(self):
         self.connection.close()
-        spider.logger.info("SQLite database connection closed.")
+        self.crawler.spider.logger.info("SQLite database connection closed.")

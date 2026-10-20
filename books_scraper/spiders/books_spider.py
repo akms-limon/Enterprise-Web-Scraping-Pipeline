@@ -1,21 +1,21 @@
 
 import random
-from books_scraper.items import BooksScraperItem
+
 import scrapy
+
+from books_scraper.items import BooksScraperItem
 
 
 class BooksSpider(scrapy.Spider):
     """Discover categories and randomly choose categories to scrape."""
 
     name = "books"
-
     start_urls = ["https://books.toscrape.com/index.html"]
 
     def parse(self, response):
         """Discover category links and request randomly selected categories."""
 
         category_links = response.css(".side_categories ul ul li a")
-
         categories = []
 
         for link in category_links:
@@ -46,10 +46,7 @@ class BooksSpider(scrapy.Spider):
         )
 
         for category in selected_categories:
-            self.logger.info(
-                "Selected category: %s",
-                category["name"],
-            )
+            self.logger.info("Selected category: %s", category["name"])
 
             yield response.follow(
                 category["url"],
@@ -59,8 +56,6 @@ class BooksSpider(scrapy.Spider):
                     "collected_books": [],
                 },
             )
-
-    
 
     def parse_category(self, response, category_name, collected_books):
         """Collect book data across all pages of a category."""
@@ -103,18 +98,14 @@ class BooksSpider(scrapy.Spider):
             )
             return
 
-        if len(collected_books) < 5:
-            self.logger.warning(
-                "Skipping category '%s': only %d books available; 5 required.",
-                category_name,
-                len(collected_books),
-            )
-            return
-
-        selected_books = random.sample(collected_books, 5)
+        selected_books = random.sample(
+            collected_books,
+            min(5, len(collected_books)),
+        )
 
         self.logger.info(
-            "Selected 5 random books from '%s' (%d available).",
+            "Selected %d random books from '%s' (%d available).",
+            len(selected_books),
             category_name,
             len(collected_books),
         )
